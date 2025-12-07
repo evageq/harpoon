@@ -1,6 +1,7 @@
 local harpoon = require("harpoon")
 local utils = require("harpoon.utils")
 local log = require("harpoon.dev").log
+local Path = require("plenary.path")
 
 -- I think that I may have to organize this better.  I am not the biggest fan
 -- of procedural all the things
@@ -82,16 +83,24 @@ end
 
 local function create_mark(filename)
     local cursor_pos = vim.api.nvim_win_get_cursor(0)
+    local absolute_path
+
+    if filename == "" then
+        absolute_path = ""
+    else
+        absolute_path = Path:new(filename):absolute()
+    end
     log.trace(
         string.format(
-            "_create_mark(): Creating mark at row: %d, col: %d for %s",
+            "_create_mark(): Creating mark at row: %d, col: %d for %s, absolute: %s",
             cursor_pos[1],
             cursor_pos[2],
-            filename
+            filename,
+            absolute_path
         )
     )
     return {
-        filename = filename,
+        filename = absolute_path,
         row = cursor_pos[1],
         col = cursor_pos[2],
     }

@@ -1,6 +1,9 @@
 local Path = require("plenary.path")
 local data_path = vim.fn.stdpath("data")
+local last_project_file = string.format("%s/harpoon_last_proj", data_path)
 local Job = require("plenary.job")
+local Dev = require("harpoon.dev")
+local log = Dev.log
 
 local M = {}
 
@@ -8,6 +11,33 @@ M.data_path = data_path
 
 function M.project_key()
     return vim.loop.cwd()
+end
+
+local function parse_projects()
+    local names = {}
+    for key in pairs(HarpoonConfig.projects) do
+        table.insert(names, key)
+    end
+
+    return names
+end
+
+function M.project_candidates(ArgLead, CmdLine, CursorPos)
+    return parse_projects()
+end
+
+function M.load_project_by_name_cli(opts)
+    Path:new(last_project_file):write(opts.fargs[1], "w")
+end
+
+local function read_config(config)
+    log.info(config)
+    return Path:new(config):read()
+end
+
+function M.project_by_name_last_key()
+    local ok, project = pcall(read_config, last_project_file)
+    return project or "default"
 end
 
 function M.branch_key()
@@ -39,7 +69,8 @@ function M.branch_key()
 end
 
 function M.normalize_path(item)
-    return Path:new(item):make_relative(M.project_key())
+    return item
+    -- return Path:new(item):make_relative(M.project_key())
 end
 
 function M.get_os_command_output(cmd, cwd)

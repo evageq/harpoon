@@ -94,6 +94,8 @@ local function mark_config_key(global_settings)
     global_settings = global_settings or M.get_global_settings()
     if global_settings.mark_branch then
         return utils.branch_key()
+    elseif global_settings.mark_project_by_name then
+        return utils.project_by_name_last_key()
     else
         return utils.project_key()
     end
@@ -179,9 +181,15 @@ local function read_config(local_config)
     return vim.json.decode(Path:new(local_config):read())
 end
 
+local function init_user_commands()
+    vim.api.nvim_create_user_command('HarpoonLoad', utils.load_project_by_name_cli, { nargs = 1, complete = utils.project_candidates })
+end
+
 -- 1. saved.  Where do we save?
 function M.setup(config)
     log.trace("setup(): Setting up...")
+
+    init_user_commands()
 
     if not config then
         config = {}
@@ -210,6 +218,7 @@ function M.setup(config)
             ["tmux_autoclose_windows"] = false,
             ["excluded_filetypes"] = { "harpoon" },
             ["mark_branch"] = false,
+            ["mark_project_by_name"] = true,
             ["tabline"] = false,
             ["tabline_suffix"] = "   ",
             ["tabline_prefix"] = "   ",
